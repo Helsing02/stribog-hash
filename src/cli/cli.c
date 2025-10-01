@@ -10,10 +10,12 @@ void print_help(const char *program_name) {
     printf("Options:\n");
     printf("  -s, --size SIZE      Hash size (256 or 512, default: 512)\n");
     printf("  -i, --input FILE     Input file (default: stdin)\n");
+    printf("  -x, --hex-input      Read input as hex string (default: raw bytes)\n");
     printf("  -o, --output FILE    Output file (default: stdout)\n");
+    printf("  -X, --hex-output     Output hash in hex format (default: raw bytes)\n");
     printf("  -h, --help           Display this help and exit\n\n");
     printf("Examples:\n");
-    printf("  %s -s 256 -i file.txt -o hash.txt\n", program_name);
+    printf("  %s -s 256 -i file.txt -o -X hash.txt\n", program_name);
     printf("  cat file.txt | %s -s 512 > hash.txt\n", program_name);
     printf("  echo -n \"hello\" | %s\n", program_name);
 }
@@ -22,8 +24,9 @@ int parse_arguments(int argc, char *argv[], Config *config) {
     // Устанавливаем значения по умолчанию
     config->input_file = NULL;
     config->output_file = NULL;
+    config->hex_input = 0;
+    config->hex_output = 0;
     config->hash_size = 512; // По умолчанию 512 бит
-    config->output_bytes = 0;
     config->help_requested = 0;
 
     // Длинные опции
@@ -31,7 +34,8 @@ int parse_arguments(int argc, char *argv[], Config *config) {
         {"size", required_argument, 0, 's'},
         {"input", required_argument, 0, 'i'},
         {"output", required_argument, 0, 'o'},
-        {"bytes", no_argument, 0, 'b'},
+        {"hex-input", no_argument, 0, 'x'},
+        {"hex-output", no_argument, 0, 'X'},
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
     };
@@ -39,7 +43,7 @@ int parse_arguments(int argc, char *argv[], Config *config) {
     int option_index = 0;
     int c;
 
-    while ((c = getopt_long(argc, argv, "s:i:o:hb", long_options, &option_index)) != -1) {
+    while ((c = getopt_long(argc, argv, "s:i:xo:Xh", long_options, &option_index)) != -1) {
         switch (c) {
             case 's':
                 if (strcmp(optarg, "256") == 0) {
@@ -57,8 +61,11 @@ int parse_arguments(int argc, char *argv[], Config *config) {
             case 'o':
                 config->output_file = optarg;
                 break;
-            case 'b':
-                config->output_bytes = 1;
+            case 'x':
+                config->hex_input = 1;
+                break;
+            case 'X':
+                config->hex_output = 1;
                 break;
             case 'h':
                 config->help_requested = 1;

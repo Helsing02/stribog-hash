@@ -18,7 +18,13 @@ int main(int argc, char *argv[]) {
     }
 
     // Обрабатываем ввод-вывод
-    if (process_input_output(config.input_file, config.output_file, config.hash_size, config.output_bytes) != 0) {
+    if (process_input_output(
+            config.input_file, 
+            config.output_file, 
+            config.hash_size, 
+            config.hex_input, 
+            config.hex_output
+        ) != 0) {
         return 1;
     }
 

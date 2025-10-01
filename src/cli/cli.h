@@ -4,8 +4,9 @@
 typedef struct {
     const char *input_file;
     const char *output_file;
+    int hex_input;
+    int hex_output;
     int hash_size;
-    int output_bytes;           // флаг для вывода байтами
     int help_requested;
 } Config;
 
