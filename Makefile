@@ -14,6 +14,7 @@ SRC_DIR = src
 OBJ_DIR = obj
 BIN_DIR = bin
 TEST_DIR = tests
+COMP_DIR = cmp_with_other_implementations
 
 HASH_DIR = $(SRC_DIR)/hash
 CLI_DIR = $(SRC_DIR)/cli
@@ -44,9 +45,17 @@ debug: $(TARGET)
 release: CFLAGS += $(RELEASE_FLAGS)
 release: clean $(TARGET)
 
+compare:
+	@$(MAKE) -C $(COMP_DIR) all
+	@echo "Running comparsion..."
+	@cd $(COMP_DIR) && ./compare
+
 # Сборка исполняемого файла
 $(TARGET): $(OBJS) | $(BIN_DIR)
 	$(CC) $(OBJS) -o $@
+
+$(COMP_TARGET):
+
 
 # Сборка тестового исполняемого файла
 $(TEST_TARGET): $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) $(TEST_OBJ) | $(BIN_DIR)
@@ -70,7 +79,10 @@ $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
 
 # Очистка
-clean:
+compare-clean:
+	@$(MAKE) -C $(COMP_DIR) clean
+
+clean: compare-clean
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
 
 # Пересборка
@@ -81,5 +93,5 @@ test: $(TEST_TARGET)
 	@echo "Running Stribog unit tests..."
 	@./$(TEST_TARGET)
 
-# Указываем, что эти цели не являются реальными файдами
-.PHONY: all clean rebuild test
+# Указываем, что эти цели не являются реальными файлами
+.PHONY: all clean rebuild test compare compare-clean

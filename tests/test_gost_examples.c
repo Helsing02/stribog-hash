@@ -70,18 +70,13 @@ int test_gost_example(const char *input, const uint8_t *expected_256, const uint
     uint8_t expected_256[32] = {0}; \
     uint8_t expected_512[64] = {0}; \
     \
-    int has_256 = (expected_256_hex != NULL); \
-    int has_512 = (expected_512_hex != NULL); \
-    \
-    if (has_256 && !hex_to_bytes(expected_256_hex, expected_256, 32)) { \
+    if (!hex_to_bytes(expected_256_hex, expected_256, 32)) { \
         printf("❌ FAIL: Invalid 256-bit hex string\n\n"); \
         failed++; \
-    } else if (has_512 && !hex_to_bytes(expected_512_hex, expected_512, 64)) { \
+    } else if (!hex_to_bytes(expected_512_hex, expected_512, 64)) { \
         printf("❌ FAIL: Invalid 512-bit hex string\n\n"); \
         failed++; \
-    } else if (test_gost_example(input, \
-                               has_256 ? expected_256 : NULL, \
-                               has_512 ? expected_512 : NULL)) { \
+    } else if (test_gost_example(input, expected_256, expected_512)) { \
         printf("✅ PASS\n\n"); \
         passed++; \
     } else { \
