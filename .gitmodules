@@ -1,9 +1,9 @@
-[submodule "cmp_with_other_implementations/other_impl_1"]
-	path = cmp_with_other_implementations/other_impl_1
-	url = https://github.com/okazymyrov/stribog/
-[submodule "cmp_with_other_implementations/other_impl_2"]
-	path = cmp_with_other_implementations/other_impl_2
+[submodule "tests/comparsion/other_impl_1"]
+	path = tests/comparsion/other_impl_1
+	url = https://github.com/okazymyrov/stribog.git
+[submodule "tests/comparsion/other_impl_2"]
+	path = tests/comparsion/other_impl_2
 	url = https://github.com/drobotun/stribog.git
-[submodule "cmp_with_other_implementations/other_impl_3"]
-	path = cmp_with_other_implementations/other_impl_3
+[submodule "tests/comparsion/other_impl_3"]
+	path = tests/comparsion/other_impl_3
 	url = https://github.com/sftp/gost34.11-2012_stribog.git

@@ -16,7 +16,7 @@ LIBS = $(addprefix $(LIB_DIR)/lib, $(addsuffix .so, $(IMPLS)))
 TARGETS = compare $(GEN_DIR)/random_generator $(LIBS)
 
 # Исходники
-MY_IMPL_SRCS = ../src/hash/stribog.c $(ADAP_DIR)/my_impl_adapter.c
+MY_IMPL_SRCS = ../../src/hash/stribog.c $(ADAP_DIR)/my_impl_adapter.c
 OTHER_IMPL_1_SRCS = other_impl_1/C/standard/stribog.c $(ADAP_DIR)/other_impl_1_adapter.c
 OTHER_IMPL_2_SRCS = other_impl_2/gost_3411_2012_calc.c $(ADAP_DIR)/other_impl_2_adapter.c
 OTHER_IMPL_3_SRCS = $(ADAP_DIR)/other_impl_3_adapter.c

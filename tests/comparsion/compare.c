@@ -226,8 +226,8 @@ int main() {
     
     // Список тестовых файлов
     const char* test_files[] = {
-        "../tests/GOST_test1.txt",
-        "../tests/GOST_test2.txt",
+        "../GOST_test1.txt",
+        "../GOST_test2.txt",
         "test_data/random_1k.bin",
         "test_data/random_1m.bin",
         NULL
