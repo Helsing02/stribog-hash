@@ -14,7 +14,7 @@ SRC_DIR = src
 OBJ_DIR = obj
 BIN_DIR = bin
 TEST_DIR = tests
-COMP_DIR = cmp_with_other_implementations
+COMP_DIR = $(TEST_DIR)/comparsion
 
 HASH_DIR = $(SRC_DIR)/hash
 CLI_DIR = $(SRC_DIR)/cli
@@ -48,13 +48,11 @@ release: clean $(TARGET)
 compare:
 	@$(MAKE) -C $(COMP_DIR) all
 	@echo "Running comparsion..."
-	@cd $(COMP_DIR) && ./compare
+	@$(MAKE) -C $(COMP_DIR) run_compare
 
 # Сборка исполняемого файла
 $(TARGET): $(OBJS) | $(BIN_DIR)
 	$(CC) $(OBJS) -o $@
-
-$(COMP_TARGET):
 
 
 # Сборка тестового исполняемого файла

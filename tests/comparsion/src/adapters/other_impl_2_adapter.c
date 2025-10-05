@@ -1,7 +1,7 @@
 #include <stdlib.h>
 
 #include "../interface.h"
-#include "../other_impl_2/gost_3411_2012_calc.h"
+#include "../../other_impl_2/gost_3411_2012_calc.h"
 
 static int other_init_256(void** context) {
     TGOSTHashContext* ctx = malloc(sizeof(TGOSTHashContext));

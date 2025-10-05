@@ -2,7 +2,7 @@
 #include <string.h>
 
 #include "../interface.h"
-#include "../other_impl_1/C/stribog.h"
+#include "../../other_impl_1/C/stribog.h"
 // Контекст для накопления данных (так как их API работает за один вызов)
 typedef struct {
     unsigned char* data;      // Накопленные данные

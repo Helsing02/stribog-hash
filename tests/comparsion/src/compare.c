@@ -143,7 +143,7 @@ void compare_results(test_result* result1, test_result* result2, int hash_size) 
 }
 
 void run_compare(loaded_library *loaded_libs, int num_libs) {
-    const char *filename = "test_data/random_random_size.bin";
+    const char *filename = "../test_data/random_random_size.bin";
     test_result *results[10] = {NULL};
         
     // Тестируем каждую реализацию
@@ -200,10 +200,10 @@ int main() {
 
     // Список библиотек для загрузки
     const char* libraries[] = {
-        "libs/libmy_impl.so",
-        "libs/libother_impl_1.so", 
-        "libs/libother_impl_2.so",
-        "libs/libother_impl_3.so",
+        "../libs/libmy_impl.so",
+        "../libs/libother_impl_1.so", 
+        "../libs/libother_impl_2.so",
+        "../libs/libother_impl_3.so",
         NULL
     };
 
@@ -226,18 +226,18 @@ int main() {
     
     // Список тестовых файлов
     const char* test_files[] = {
-        "../GOST_test1.txt",
-        "../GOST_test2.txt",
-        "test_data/random_1k.bin",
-        "test_data/random_1m.bin",
+        "../test_data/GOST_test1.txt",
+        "../test_data/GOST_test2.txt",
+        "../test_data/random_1k.bin",
+        "../test_data/random_1m.bin",
         NULL
     };
     
     // Генерируем тестовые данные если их нет
     printf("Generating test data...\n");
     system("mkdir -p test_data");
-    system("generator/random_generator test_data/random_1k.bin 1024");
-    system("generator/random_generator test_data/random_1m.bin 1048576");
+    system("./random_generator ../test_data/random_1k.bin 1024");
+    system("./random_generator ../test_data/random_1m.bin 1048576");
 
     
     // Запускаем тесты для каждого файла
@@ -282,7 +282,7 @@ int main() {
     printf("=== Starting %d random tests ===\n", NUM_OF_RANDOM_TESTS);
     for (int i = 0; i < NUM_OF_RANDOM_TESTS; i++){
         print_progress_bar(i + 1, NUM_OF_RANDOM_TESTS);
-        const char *base_command = "generator/random_generator test_data/random_random_size.bin ";
+        const char *base_command = "./random_generator ../test_data/random_random_size.bin ";
 
         // Генерация случайного числа в диапазоне 1 байт - 100 Кибибайт
         int random_size = 1 + rand() % (100 * 1024);
@@ -298,7 +298,7 @@ int main() {
 
         run_compare(loaded_libs, num_libs);      
 
-        system("rm test_data/random_random_size.bin");
+        system("rm ../test_data/random_random_size.bin");
     }
 
     // Выгружаем библиотеки
