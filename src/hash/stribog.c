@@ -185,8 +185,12 @@ static void stribog_X_transform(const uint8_t *a, const uint8_t *b, uint8_t *res
     Безразлична к порядку байтов в массивах.
     Для ускорения кастит массивы к ``uint64_t``, позволяя обработать 8 байтов за одну итерацию.
     */
+    uint64_t *pa = (uint64_t *)a;
+    uint64_t *pb = (uint64_t *)b;
+    uint64_t *presult = (uint64_t *)result;
+
     for (int i = 0; i < STRIBOG_BLOCK_SIZE / 8; i++) {
-        ((uint64_t *)result)[i] = ((uint64_t *)a)[i] ^ ((uint64_t *)b)[i];
+        presult[i] = pa[i] ^ pb[i];
     }
     #ifdef DEBUG_TRANSFORM
     printf("After X:\n");
@@ -245,11 +249,12 @@ static void multiply_by_l_matrix(uint8_t *data) {
     получаем последовательный порядок бит *(uint64_t *)data = 63,62,61,...,2,1,0.
     */
     uint64_t result = 0ULL;
+    uint64_t segment = *(uint64_t *)data;
 
     // Проходим по всем битам
     for (int j = 0; j < 64; j++) {
         
-        if (*(uint64_t *)data & (1ULL << j)) {
+        if (segment & (1ULL << j)) {
             // То соответствующая строка матрицы участвует в суммировании
             result ^= L_MATRIX[63 - j];
         }
@@ -359,12 +364,15 @@ static void stribog_add_array_modulo_512(uint8_t *a, const uint8_t *b) {
     Ожидает все массивы с порядком байтов от младшего к старшему (байт с нулевым индексом содержит биты с 7 по 0).
     Возвращает массив с аналогичным порядоком байтов.
     */
-    uint16_t sum = 0;
-    
-    // Начинаем сумму с младших байт (с меньшим индексом)
-    for (int i = 0; i < STRIBOG_BLOCK_SIZE; i++) {
-        sum = a[i] + b[i] + (sum >> 8);
-        a[i] = sum;
+    uint64_t *pa = (uint64_t *)a;
+    const uint64_t *pb = (const uint64_t *)b;
+
+    uint64_t carry = 0;
+
+    for (size_t i = 0; i < STRIBOG_BLOCK_SIZE / 8; i++) {
+        uint64_t sum = pa[i] + pb[i] + carry;
+        carry = (sum < pa[i]) || (sum == pa[i] && carry == 1) ? 1 : 0;
+        pa[i] = sum;
     }
 }
 
@@ -374,13 +382,14 @@ static void stribog_add_number_modulo_512(uint8_t *a, uint64_t b) {
     Ожидает массив с порядком байтов от младшего к старшему (байт с нулевым индексом содержит биты с 7 по 0).
     Возвращает массив с аналогичным порядоком байтов.
     */
-    ((uint64_t *)a)[0] += b;
+    uint64_t *pa = (uint64_t *)a;
+    pa[0] += b;
     // Если произошло переполнение
-    if (((uint64_t *)a)[0] < b) {
-        for (int i = 1; i < 8; i++) {
-            ((uint64_t *)a)[i] += 1;
+    if (pa[0] < b) {
+        for (int i = 1; i < STRIBOG_BLOCK_SIZE / 8; i++) {
+            pa[i] += 1;
             // Если не произошло переполнения
-            if (a[i] != 0) {
+            if (pa[i] != 0) {
                 break;
             }
         }   
