@@ -14,6 +14,7 @@ SRC_DIR = src
 OBJ_DIR = obj
 BIN_DIR = bin
 TEST_DIR = tests
+UNIT_DIR = $(TEST_DIR)/unit
 COMP_DIR = $(TEST_DIR)/comparsion
 
 HASH_DIR = $(SRC_DIR)/hash
@@ -26,11 +27,10 @@ SRCS = $(shell find $(SRC_DIR) -name '*.c')
 # Объектные файлы (заменяем папку src на obj и расширение .c на .o)
 OBJS = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
 
-# Тестовые файлы
-TEST_NAME = test_gost_examples
-TEST_SRC = $(TEST_DIR)/$(TEST_NAME).c
-TEST_OBJ = $(OBJ_DIR)/$(TEST_NAME).o
-TEST_TARGET = $(BIN_DIR)/stribog_test
+# Юнит тесты
+UNIT_SRC = $(shell find $(UNIT_DIR) -name '*.c')
+UNIT_OBJ = $(OBJ_DIR)/$(TEST_NAME).o
+UNIT_TARGET = $(BIN_DIR)/stribog_test
 
 # Имя исполняемого файла
 TARGET = $(BIN_DIR)/$(PROJECT_NAME)
@@ -56,7 +56,7 @@ $(TARGET): $(OBJS) | $(BIN_DIR)
 
 
 # Сборка тестового исполняемого файла
-$(TEST_TARGET): $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) $(TEST_OBJ) | $(BIN_DIR)
+$(UNIT_TARGET): $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) $(UNIT_OBJ) | $(BIN_DIR)
 	$(CC) $^ -o $@
 
 # Сборка объектных файлов
@@ -65,7 +65,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Сборка тестового объектного файла
-$(TEST_OBJ): $(TEST_SRC) | $(OBJ_DIR)
+$(UNIT_OBJ): $(UNIT_SRC) | $(OBJ_DIR)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -I$(SRC_DIR) -c $< -o $@
 
@@ -87,9 +87,9 @@ clean: compare-clean
 rebuild: clean all
 
 # Цель для запуска тестов
-test: $(TEST_TARGET)
+unit: $(UNIT_TARGET)
 	@echo "Running Stribog unit tests..."
-	@./$(TEST_TARGET)
+	@./$(UNIT_TARGET)
 
 # Указываем, что эти цели не являются реальными файлами
-.PHONY: all clean rebuild test compare compare-clean
+.PHONY: all clean rebuild unit compare compare-clean

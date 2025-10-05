@@ -68,10 +68,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 
 clean:
 	rm -f $(TARGETS)
-	rm -rf test_data/
-	rm -rf $(LIB_DIR)
-	rm -rf $(OBJ_DIR)
-	rm -rf $(BIN_DIR)
+	rm -rf $(LIB_DIR) $(OBJ_DIR) $(BIN_DIR)
 
 run_compare: all
 	@cd $(BIN_DIR) && ./compare
