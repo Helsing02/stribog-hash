@@ -202,7 +202,7 @@ int run_benchmark(const benchmark_config_t *config) {
         
         double avg = sum / config->iterations;
         double median = calculate_median(times, config->iterations);
-        double throughput = (size / (1024.0 * 1024.0)) / (avg / 1e9);  // MB/s
+        double throughput = (size / (1024.0 * 1024.0)) / (avg / 1e9);  // MiB/s
         
         results[result_count] = (benchmark_result_t){
             .data_size = size,
@@ -214,7 +214,7 @@ int run_benchmark(const benchmark_config_t *config) {
         };
         result_count++;
         
-        printf(" %.2f MB/s\n", throughput);
+        printf(" %.2f MiB/s\n", throughput);
         
         free(test_data);
         free(times);
@@ -246,7 +246,7 @@ int run_benchmark(const benchmark_config_t *config) {
 
 void print_results(const benchmark_result_t *results, int count) {
     printf("\n%12s %14s %14s %14s %14s %12s\n", 
-           "Size (bytes)", "Min (ns)", "Max (ns)", "Avg (ns)", "Median (ns)", "Throughput (MB/s)");
+           "Size (bytes)", "Min (ns)", "Max (ns)", "Avg (ns)", "Median (ns)", "Throughput (MiB/s)");
     printf("%12s %14s %14s %14s %14s %12s\n", 
            "------------", "---------", "---------", "---------", "-----------", "----------------");
     
