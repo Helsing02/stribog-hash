@@ -2,11 +2,11 @@ PROJECT_NAME = stribog
 
 # Компилятор и флаги
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -std=c11 -pedantic -I./src
+CFLAGS = -Wall -Wextra -Werror -std=c11 -pedantic -I./src -mavx2 -O3
 # Флаги для отладки
-DEBUG_FLAGS = -g -O0 -DDEBUG -DDEBUG_TRANSFORM
+DEBUG_FLAGS = -g -DDEBUG -DDEBUG_TRANSFORM
 # Флаги для релиза
-RELEASE_FLAGS = -O2 -DNDEBUG
+RELEASE_FLAGS = -DNDEBUG
 
 
 # Папки
