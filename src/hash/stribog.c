@@ -690,55 +690,32 @@ static void stribog_X_transform(const uint8_t *a, const uint8_t *b, uint8_t *res
     _mm256_storeu_si256((__m256i *)(result + 32), res_high);
 }
 
-// Преобразование P (перестановка байтов)
-static void stribog_P_transform(uint8_t *block) {
-    /*
-    Функция перестановки байтов.
-    Так как порядок перестановки имеет строгий математический характер
-    И для каждого индекса элемента можно вычислить его новую позицию используя лишь одну формулу,
-    Не использует таблиц перестановки.
-    Безразлична к порядку байтов в массиве благодаря структуре перестановки.
-    */
-    uint8_t temp[STRIBOG_BLOCK_SIZE];
-
-    // Сохраняем блок во временный массив
-    memcpy(temp, block, STRIBOG_BLOCK_SIZE);
-
-    for (int i = 0; i < STRIBOG_BLOCK_SIZE; i++) {
-        block[i] = temp[(i * 8 + i / 8) % STRIBOG_BLOCK_SIZE];
-    }
-    #ifdef DEBUG_TRANSFORM
-    printf("After P:\n");
-    print_debug(block, 64);
-    #endif
-}
-
 // Преобразование LS (перестановка и линейное преобразование)
-static void stribog_LS_transform(uint8_t *block) {
-    __m256i res_low = _mm256_set_epi64x(
-        L_MATRIX_PRECALC_BYTES[0][block[24]],
-        L_MATRIX_PRECALC_BYTES[0][block[16]],
-        L_MATRIX_PRECALC_BYTES[0][block[8]],
+static void stribog_LPS_transform(uint8_t *block) {
+     __m256i res_low = _mm256_set_epi64x(
+        L_MATRIX_PRECALC_BYTES[0][block[3]],
+        L_MATRIX_PRECALC_BYTES[0][block[2]],
+        L_MATRIX_PRECALC_BYTES[0][block[1]],
         L_MATRIX_PRECALC_BYTES[0][block[0]]
     );
     __m256i res_high = _mm256_set_epi64x(
-        L_MATRIX_PRECALC_BYTES[0][block[56]],
-        L_MATRIX_PRECALC_BYTES[0][block[48]],
-        L_MATRIX_PRECALC_BYTES[0][block[40]],
-        L_MATRIX_PRECALC_BYTES[0][block[32]]
+        L_MATRIX_PRECALC_BYTES[0][block[7]],
+        L_MATRIX_PRECALC_BYTES[0][block[6]],
+        L_MATRIX_PRECALC_BYTES[0][block[5]],
+        L_MATRIX_PRECALC_BYTES[0][block[4]]
     );
 
     __m256i next_low = _mm256_set_epi64x(
-        L_MATRIX_PRECALC_BYTES[1][block[25]],
-        L_MATRIX_PRECALC_BYTES[1][block[17]],
+        L_MATRIX_PRECALC_BYTES[1][block[11]],
+        L_MATRIX_PRECALC_BYTES[1][block[10]],
         L_MATRIX_PRECALC_BYTES[1][block[9]],
-        L_MATRIX_PRECALC_BYTES[1][block[1]]
+        L_MATRIX_PRECALC_BYTES[1][block[8]]
     );
     __m256i next_high = _mm256_set_epi64x(
-        L_MATRIX_PRECALC_BYTES[1][block[57]],
-        L_MATRIX_PRECALC_BYTES[1][block[49]],
-        L_MATRIX_PRECALC_BYTES[1][block[41]],
-        L_MATRIX_PRECALC_BYTES[1][block[33]]
+        L_MATRIX_PRECALC_BYTES[1][block[15]],
+        L_MATRIX_PRECALC_BYTES[1][block[14]],
+        L_MATRIX_PRECALC_BYTES[1][block[13]],
+        L_MATRIX_PRECALC_BYTES[1][block[12]]
     );
 
     res_low = _mm256_xor_si256(res_low, next_low);
@@ -746,16 +723,16 @@ static void stribog_LS_transform(uint8_t *block) {
 
 
     next_low = _mm256_set_epi64x(
-        L_MATRIX_PRECALC_BYTES[2][block[26]],
+        L_MATRIX_PRECALC_BYTES[2][block[19]],
         L_MATRIX_PRECALC_BYTES[2][block[18]],
-        L_MATRIX_PRECALC_BYTES[2][block[10]],
-        L_MATRIX_PRECALC_BYTES[2][block[2]]
+        L_MATRIX_PRECALC_BYTES[2][block[17]],
+        L_MATRIX_PRECALC_BYTES[2][block[16]]
     );
     next_high = _mm256_set_epi64x(
-        L_MATRIX_PRECALC_BYTES[2][block[58]],
-        L_MATRIX_PRECALC_BYTES[2][block[50]],
-        L_MATRIX_PRECALC_BYTES[2][block[42]],
-        L_MATRIX_PRECALC_BYTES[2][block[34]]
+        L_MATRIX_PRECALC_BYTES[2][block[23]],
+        L_MATRIX_PRECALC_BYTES[2][block[22]],
+        L_MATRIX_PRECALC_BYTES[2][block[21]],
+        L_MATRIX_PRECALC_BYTES[2][block[20]]
     );
 
     res_low = _mm256_xor_si256(res_low, next_low);
@@ -763,30 +740,30 @@ static void stribog_LS_transform(uint8_t *block) {
 
     next_low = _mm256_set_epi64x(
         L_MATRIX_PRECALC_BYTES[3][block[27]],
-        L_MATRIX_PRECALC_BYTES[3][block[19]],
-        L_MATRIX_PRECALC_BYTES[3][block[11]],
-        L_MATRIX_PRECALC_BYTES[3][block[3]]
+        L_MATRIX_PRECALC_BYTES[3][block[26]],
+        L_MATRIX_PRECALC_BYTES[3][block[25]],
+        L_MATRIX_PRECALC_BYTES[3][block[24]]
     );
     next_high = _mm256_set_epi64x(
-        L_MATRIX_PRECALC_BYTES[3][block[59]],
-        L_MATRIX_PRECALC_BYTES[3][block[51]],
-        L_MATRIX_PRECALC_BYTES[3][block[43]],
-        L_MATRIX_PRECALC_BYTES[3][block[35]]
+        L_MATRIX_PRECALC_BYTES[3][block[31]],
+        L_MATRIX_PRECALC_BYTES[3][block[30]],
+        L_MATRIX_PRECALC_BYTES[3][block[29]],
+        L_MATRIX_PRECALC_BYTES[3][block[28]]
     );
 
     res_low = _mm256_xor_si256(res_low, next_low);
     res_high = _mm256_xor_si256(res_high, next_high);
 
     next_low = _mm256_set_epi64x(
-        L_MATRIX_PRECALC_BYTES[4][block[28]],
-        L_MATRIX_PRECALC_BYTES[4][block[20]],
-        L_MATRIX_PRECALC_BYTES[4][block[12]],
-        L_MATRIX_PRECALC_BYTES[4][block[4]]
+        L_MATRIX_PRECALC_BYTES[4][block[35]],
+        L_MATRIX_PRECALC_BYTES[4][block[34]],
+        L_MATRIX_PRECALC_BYTES[4][block[33]],
+        L_MATRIX_PRECALC_BYTES[4][block[32]]
     );
     next_high = _mm256_set_epi64x(
-        L_MATRIX_PRECALC_BYTES[4][block[60]],
-        L_MATRIX_PRECALC_BYTES[4][block[52]],
-        L_MATRIX_PRECALC_BYTES[4][block[44]],
+        L_MATRIX_PRECALC_BYTES[4][block[39]],
+        L_MATRIX_PRECALC_BYTES[4][block[38]],
+        L_MATRIX_PRECALC_BYTES[4][block[37]],
         L_MATRIX_PRECALC_BYTES[4][block[36]]
     );
 
@@ -794,48 +771,48 @@ static void stribog_LS_transform(uint8_t *block) {
     res_high = _mm256_xor_si256(res_high, next_high);
 
     next_low = _mm256_set_epi64x(
-        L_MATRIX_PRECALC_BYTES[5][block[29]],
-        L_MATRIX_PRECALC_BYTES[5][block[21]],
-        L_MATRIX_PRECALC_BYTES[5][block[13]],
-        L_MATRIX_PRECALC_BYTES[5][block[5]]
+        L_MATRIX_PRECALC_BYTES[5][block[43]],
+        L_MATRIX_PRECALC_BYTES[5][block[42]],
+        L_MATRIX_PRECALC_BYTES[5][block[41]],
+        L_MATRIX_PRECALC_BYTES[5][block[40]]
     );
     next_high = _mm256_set_epi64x(
-        L_MATRIX_PRECALC_BYTES[5][block[61]],
-        L_MATRIX_PRECALC_BYTES[5][block[53]],
+        L_MATRIX_PRECALC_BYTES[5][block[47]],
+        L_MATRIX_PRECALC_BYTES[5][block[46]],
         L_MATRIX_PRECALC_BYTES[5][block[45]],
-        L_MATRIX_PRECALC_BYTES[5][block[37]]
+        L_MATRIX_PRECALC_BYTES[5][block[44]]
     );
 
     res_low = _mm256_xor_si256(res_low, next_low);
     res_high = _mm256_xor_si256(res_high, next_high);
 
     next_low = _mm256_set_epi64x(
-        L_MATRIX_PRECALC_BYTES[6][block[30]],
-        L_MATRIX_PRECALC_BYTES[6][block[22]],
-        L_MATRIX_PRECALC_BYTES[6][block[14]],
-        L_MATRIX_PRECALC_BYTES[6][block[6]]
+        L_MATRIX_PRECALC_BYTES[6][block[51]],
+        L_MATRIX_PRECALC_BYTES[6][block[50]],
+        L_MATRIX_PRECALC_BYTES[6][block[49]],
+        L_MATRIX_PRECALC_BYTES[6][block[48]]
     );
     next_high = _mm256_set_epi64x(
-        L_MATRIX_PRECALC_BYTES[6][block[62]],
+        L_MATRIX_PRECALC_BYTES[6][block[55]],
         L_MATRIX_PRECALC_BYTES[6][block[54]],
-        L_MATRIX_PRECALC_BYTES[6][block[46]],
-        L_MATRIX_PRECALC_BYTES[6][block[38]]
+        L_MATRIX_PRECALC_BYTES[6][block[53]],
+        L_MATRIX_PRECALC_BYTES[6][block[52]]
     );
 
     res_low = _mm256_xor_si256(res_low, next_low);
     res_high = _mm256_xor_si256(res_high, next_high);
 
     next_low = _mm256_set_epi64x(
-        L_MATRIX_PRECALC_BYTES[7][block[31]],
-        L_MATRIX_PRECALC_BYTES[7][block[23]],
-        L_MATRIX_PRECALC_BYTES[7][block[15]],
-        L_MATRIX_PRECALC_BYTES[7][block[7]]
+        L_MATRIX_PRECALC_BYTES[7][block[59]],
+        L_MATRIX_PRECALC_BYTES[7][block[58]],
+        L_MATRIX_PRECALC_BYTES[7][block[57]],
+        L_MATRIX_PRECALC_BYTES[7][block[56]]
     );
     next_high = _mm256_set_epi64x(
         L_MATRIX_PRECALC_BYTES[7][block[63]],
-        L_MATRIX_PRECALC_BYTES[7][block[55]],
-        L_MATRIX_PRECALC_BYTES[7][block[47]],
-        L_MATRIX_PRECALC_BYTES[7][block[39]]
+        L_MATRIX_PRECALC_BYTES[7][block[62]],
+        L_MATRIX_PRECALC_BYTES[7][block[61]],
+        L_MATRIX_PRECALC_BYTES[7][block[60]]
     );
 
     res_low = _mm256_xor_si256(res_low, next_low);
@@ -852,8 +829,7 @@ static void key_gen(uint8_t *K, uint8_t i) {
     Ожидает в массиве порядок байтов от младшего к старшему (байт с нулевым индексом содержит биты с 7 по 0).
     */
     stribog_X_transform(K, C[i], K);
-    stribog_P_transform(K);
-    stribog_LS_transform(K);
+    stribog_LPS_transform(K);
 }
 
 // Функция E
@@ -879,8 +855,7 @@ static void stribog_E_transform(uint8_t *K, const uint8_t *m, uint8_t *result) {
         #endif
         // Применяем преобразования X, S, P, L
         stribog_X_transform(state, key, state);
-        stribog_P_transform(state);
-        stribog_LS_transform(state);
+        stribog_LPS_transform(state);
 
         // Генерируем новый ключ для следующего раунда
         key_gen(key, round);
@@ -906,8 +881,7 @@ static void stribog_g_transform(uint8_t *N, uint8_t *h, const uint8_t *m, uint8_
 
     // Применяем преобразования X, S, P, L
     stribog_X_transform(N, h, key);
-    stribog_P_transform(key);
-    stribog_LS_transform(key);
+    stribog_LPS_transform(key);
 
     stribog_E_transform(key, m, e_res);
 
