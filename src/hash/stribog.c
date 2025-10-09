@@ -713,46 +713,136 @@ static void stribog_P_transform(uint8_t *block) {
     #endif
 }
 
-
-// Преобразвание lS (умножение на матрицу с перестановкой)
-static void multiply_by_lS_matrix(uint8_t *data) {
-    /*
-    Функция умножения справа на матрицу, реализующая преобразование ``l``.
-    Принимает массив длиной 8 байтов (64 бита).
-    Ожидает по нулевому индексу младший байт из всей последовательности (с наименьшими индексами).
-    e.g. data[0] =7,6,5,4,3,2,1,0 data[7] = 63,62,61,60,59,58,57,56.
-    При касте такого массива в одно число размером 64 бита (благодаря little endian хранению данных в памяти)
-    получаем последовательный порядок бит *(uint64_t *)data = 63,62,61,...,2,1,0.
-    */
-    uint64_t result = 0ULL;
-
-    // Проходим по всем битам
-    result ^= L_MATRIX_PRECALC_BYTES[0][data[0]];
-    result ^= L_MATRIX_PRECALC_BYTES[1][data[1]];
-    result ^= L_MATRIX_PRECALC_BYTES[2][data[2]];
-    result ^= L_MATRIX_PRECALC_BYTES[3][data[3]];
-    result ^= L_MATRIX_PRECALC_BYTES[4][data[4]];
-    result ^= L_MATRIX_PRECALC_BYTES[5][data[5]];
-    result ^= L_MATRIX_PRECALC_BYTES[6][data[6]];
-    result ^= L_MATRIX_PRECALC_BYTES[7][data[7]];
-    // Результат операции размещается в памяти аналогичным способом (младший байт имеет младший индекс)
-    memcpy(data, &result, 8);
-}
-
 // Преобразование LS (перестановка и линейное преобразование)
 static void stribog_LS_transform(uint8_t *block) {
-    /*
-    Функция реализует преобразование ``L`` из ГОСТа.
-    Ожидает в массиве порядок байтов от младшего к старшему (байт с нулевым индексом содержит биты с 7 по 0).
-    */
-    // По своей сути восемь умножений на матрицу восьми частей преобразуемого блока
-    for (int i = 0; i < 8; i++) {
-        multiply_by_lS_matrix(&block[i * 8]);
-    }
-    #ifdef DEBUG_TRANSFORM
-    printf("After L:\n");
-    print_debug(block, 64);
-    #endif
+    __m256i res_low = _mm256_set_epi64x(
+        L_MATRIX_PRECALC_BYTES[0][block[24]],
+        L_MATRIX_PRECALC_BYTES[0][block[16]],
+        L_MATRIX_PRECALC_BYTES[0][block[8]],
+        L_MATRIX_PRECALC_BYTES[0][block[0]]
+    );
+    __m256i res_high = _mm256_set_epi64x(
+        L_MATRIX_PRECALC_BYTES[0][block[56]],
+        L_MATRIX_PRECALC_BYTES[0][block[48]],
+        L_MATRIX_PRECALC_BYTES[0][block[40]],
+        L_MATRIX_PRECALC_BYTES[0][block[32]]
+    );
+
+    __m256i next_low = _mm256_set_epi64x(
+        L_MATRIX_PRECALC_BYTES[1][block[25]],
+        L_MATRIX_PRECALC_BYTES[1][block[17]],
+        L_MATRIX_PRECALC_BYTES[1][block[9]],
+        L_MATRIX_PRECALC_BYTES[1][block[1]]
+    );
+    __m256i next_high = _mm256_set_epi64x(
+        L_MATRIX_PRECALC_BYTES[1][block[57]],
+        L_MATRIX_PRECALC_BYTES[1][block[49]],
+        L_MATRIX_PRECALC_BYTES[1][block[41]],
+        L_MATRIX_PRECALC_BYTES[1][block[33]]
+    );
+
+    res_low = _mm256_xor_si256(res_low, next_low);
+    res_high = _mm256_xor_si256(res_high, next_high);
+
+
+    next_low = _mm256_set_epi64x(
+        L_MATRIX_PRECALC_BYTES[2][block[26]],
+        L_MATRIX_PRECALC_BYTES[2][block[18]],
+        L_MATRIX_PRECALC_BYTES[2][block[10]],
+        L_MATRIX_PRECALC_BYTES[2][block[2]]
+    );
+    next_high = _mm256_set_epi64x(
+        L_MATRIX_PRECALC_BYTES[2][block[58]],
+        L_MATRIX_PRECALC_BYTES[2][block[50]],
+        L_MATRIX_PRECALC_BYTES[2][block[42]],
+        L_MATRIX_PRECALC_BYTES[2][block[34]]
+    );
+
+    res_low = _mm256_xor_si256(res_low, next_low);
+    res_high = _mm256_xor_si256(res_high, next_high);
+
+    next_low = _mm256_set_epi64x(
+        L_MATRIX_PRECALC_BYTES[3][block[27]],
+        L_MATRIX_PRECALC_BYTES[3][block[19]],
+        L_MATRIX_PRECALC_BYTES[3][block[11]],
+        L_MATRIX_PRECALC_BYTES[3][block[3]]
+    );
+    next_high = _mm256_set_epi64x(
+        L_MATRIX_PRECALC_BYTES[3][block[59]],
+        L_MATRIX_PRECALC_BYTES[3][block[51]],
+        L_MATRIX_PRECALC_BYTES[3][block[43]],
+        L_MATRIX_PRECALC_BYTES[3][block[35]]
+    );
+
+    res_low = _mm256_xor_si256(res_low, next_low);
+    res_high = _mm256_xor_si256(res_high, next_high);
+
+    next_low = _mm256_set_epi64x(
+        L_MATRIX_PRECALC_BYTES[4][block[28]],
+        L_MATRIX_PRECALC_BYTES[4][block[20]],
+        L_MATRIX_PRECALC_BYTES[4][block[12]],
+        L_MATRIX_PRECALC_BYTES[4][block[4]]
+    );
+    next_high = _mm256_set_epi64x(
+        L_MATRIX_PRECALC_BYTES[4][block[60]],
+        L_MATRIX_PRECALC_BYTES[4][block[52]],
+        L_MATRIX_PRECALC_BYTES[4][block[44]],
+        L_MATRIX_PRECALC_BYTES[4][block[36]]
+    );
+
+    res_low = _mm256_xor_si256(res_low, next_low);
+    res_high = _mm256_xor_si256(res_high, next_high);
+
+    next_low = _mm256_set_epi64x(
+        L_MATRIX_PRECALC_BYTES[5][block[29]],
+        L_MATRIX_PRECALC_BYTES[5][block[21]],
+        L_MATRIX_PRECALC_BYTES[5][block[13]],
+        L_MATRIX_PRECALC_BYTES[5][block[5]]
+    );
+    next_high = _mm256_set_epi64x(
+        L_MATRIX_PRECALC_BYTES[5][block[61]],
+        L_MATRIX_PRECALC_BYTES[5][block[53]],
+        L_MATRIX_PRECALC_BYTES[5][block[45]],
+        L_MATRIX_PRECALC_BYTES[5][block[37]]
+    );
+
+    res_low = _mm256_xor_si256(res_low, next_low);
+    res_high = _mm256_xor_si256(res_high, next_high);
+
+    next_low = _mm256_set_epi64x(
+        L_MATRIX_PRECALC_BYTES[6][block[30]],
+        L_MATRIX_PRECALC_BYTES[6][block[22]],
+        L_MATRIX_PRECALC_BYTES[6][block[14]],
+        L_MATRIX_PRECALC_BYTES[6][block[6]]
+    );
+    next_high = _mm256_set_epi64x(
+        L_MATRIX_PRECALC_BYTES[6][block[62]],
+        L_MATRIX_PRECALC_BYTES[6][block[54]],
+        L_MATRIX_PRECALC_BYTES[6][block[46]],
+        L_MATRIX_PRECALC_BYTES[6][block[38]]
+    );
+
+    res_low = _mm256_xor_si256(res_low, next_low);
+    res_high = _mm256_xor_si256(res_high, next_high);
+
+    next_low = _mm256_set_epi64x(
+        L_MATRIX_PRECALC_BYTES[7][block[31]],
+        L_MATRIX_PRECALC_BYTES[7][block[23]],
+        L_MATRIX_PRECALC_BYTES[7][block[15]],
+        L_MATRIX_PRECALC_BYTES[7][block[7]]
+    );
+    next_high = _mm256_set_epi64x(
+        L_MATRIX_PRECALC_BYTES[7][block[63]],
+        L_MATRIX_PRECALC_BYTES[7][block[55]],
+        L_MATRIX_PRECALC_BYTES[7][block[47]],
+        L_MATRIX_PRECALC_BYTES[7][block[39]]
+    );
+
+    res_low = _mm256_xor_si256(res_low, next_low);
+    res_high = _mm256_xor_si256(res_high, next_high);
+
+    _mm256_storeu_si256((__m256i *)block, res_low);
+    _mm256_storeu_si256((__m256i *)(block + 32), res_high);
 }
 
 
@@ -842,7 +932,7 @@ static void stribog_add_array_modulo_512(uint8_t *a, const uint8_t *b) {
 
     // Используем встроенные функции для лучшей оптимизации
     unsigned long long carry = 0ULL;
-    
+
     for (int i = 0; i < STRIBOG_BLOCK_SIZE / 8; i++) {
         carry = _addcarry_u64(carry, pa[i], pb[i], &pa[i]);
     }
@@ -857,7 +947,7 @@ static void stribog_add_number_modulo_512(uint8_t *a, uint64_t b) {
     unsigned long long *pa = (unsigned long long *)a;
     // Используем встроенные функции для лучшей оптимизации
     unsigned long long carry = _addcarry_u64(0, pa[0], b, &pa[0]);
-    
+
     for (int i = 1; i < STRIBOG_BLOCK_SIZE / 8 && carry; i++) {
         carry = _addcarry_u64(carry, pa[i], 0, &pa[i]);
     }
@@ -942,7 +1032,7 @@ void stribog_update(stribog_ctx_t *ctx, const uint8_t *data, size_t len){
             len -= to_copy;
         }
     }
-    
+
     // Остаток в буфер
     if (len > 0) {
         memcpy(ctx->buffer + ctx->buffer_size, data, len);
@@ -990,7 +1080,7 @@ void stribog_final(stribog_ctx_t *ctx, uint8_t *hash) {
     stribog_g_transform(zero, ctx->h, ctx->N, ctx->h);
     // Вызываем g с нулевым индексом и параметрами g0(h, Sigma)
     stribog_g_transform(zero, ctx->h, ctx->Sigma, hash);
-  
+
     // Для Stribog-256 берем только первые 256 бит (4 элемента из 8)
     if (ctx->hash_size == 256) {
         // Конвертируем результат в байты (little-endian)
