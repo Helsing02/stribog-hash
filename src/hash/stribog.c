@@ -22,7 +22,7 @@ static void stribog_X_transform(const uint8_t *a, const uint8_t *b, uint8_t *res
     for (int i = 0; i < STRIBOG_BLOCK_SIZE / 8; i++) {
         ((uint64_t *)result)[i] = ((uint64_t *)a)[i] ^ ((uint64_t *)b)[i];
     }
-    #ifdef DEBUG_TRANSFORM
+    #ifdef DEBUG
     printf("After X:\n");
     print_debug(result, 64);
     #endif
@@ -38,7 +38,7 @@ static void stribog_S_transform(uint8_t *block) {
     for (int i = 0; i < STRIBOG_BLOCK_SIZE; i++) {
         block[i] = S_BOX[block[i]];
     }
-    #ifdef DEBUG_TRANSFORM
+    #ifdef DEBUG
     printf("After S:\n");
     print_debug(block, 64);
     #endif
@@ -61,7 +61,7 @@ static void stribog_P_transform(uint8_t *block) {
     for (int i = 0; i < STRIBOG_BLOCK_SIZE; i++) {
         block[i] = temp[(i * 8 + i / 8) % STRIBOG_BLOCK_SIZE];
     }
-    #ifdef DEBUG_TRANSFORM
+    #ifdef DEBUG
     printf("After P:\n");
     print_debug(block, 64);
     #endif
@@ -100,7 +100,7 @@ static void stribog_L_transform(uint8_t *block) {
     for (int i = 0; i < 8; i++) {
         multiply_by_l_matrix(&block[i * 8]);
     }
-    #ifdef DEBUG_TRANSFORM
+    #ifdef DEBUG
     printf("After L:\n");
     print_debug(block, 64);
     #endif

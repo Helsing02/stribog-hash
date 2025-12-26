@@ -101,8 +101,8 @@ make random_generator
 ### Установка и сборка
 ```bash
 # Клонирование репозитория
-git clone https://github.com/Helsing02/stribog_hash.git
-cd stribog_hash
+git clone https://github.com/Helsing02/stribog-hash.git
+cd stribog-hash
 
 # Переключение на ветку debug
 git checkout debug
@@ -146,13 +146,13 @@ Examples:
 ### Примеры использования
 ```bash
 # Хеширование строки из аргумента (256-битный хеш)
-./bin/stribog -s 256 "Пример сообщения"
+echo -n "Пример сообщения" | ./bin/stribog -s 256
 
 # Хеширование файла с выводом в hex
-./bin/stribog -i input.txt -X
+./bin/stribog -i README.md -X
 
 # Хеширование hex-строки
-./bin/stribog -x "616263"  # Хеш от "abc"
+echo -n "616263" | ./bin/stribog -x  # Хеш от "abc"
 
 # Хеширование данных из stdin с сохранением в файл
 cat data.bin | ./bin/stribog -o hash.bin
@@ -171,24 +171,18 @@ make clean
 make debug
 
 # Запуск с тестовыми данными
-./bin/stribog -x "616263"  # Будет выведен подробный лог
+echo -n "616263" | ./bin/stribog -x  # Будет выведен подробный лог
 ```
 
 ## Форматы данных
 
 ### Входные форматы
-```
-    Raw bytes (по умолчанию) — бинарные данные
-
-    Hex string (с флагом -x) — шестнадцатеричное представление
-```
+* Raw bytes (по умолчанию) — бинарные данные
+* Hex string (с флагом -x) — шестнадцатеричное представление
 
 ### Выходные форматы
-```
-    Raw bytes (по умолчанию) — бинарный хеш
-
-    Hex string (с флагом -X) — шестнадцатеричное представление хеша
-```
+* Raw bytes (по умолчанию) — бинарный хеш
+* Hex string (с флагом -X) — шестнадцатеричное представление хеша
 
 ## Тестирование
 
