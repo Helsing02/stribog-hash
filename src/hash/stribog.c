@@ -67,14 +67,13 @@ static void stribog_P_transform(uint8_t *block) {
     #endif
 }
 
-
 // Преобразвание l (умножение на матрицу)
 static void multiply_by_l_matrix(uint8_t *data) {
     /*
     Функция умножения справа на матрицу, реализующая преобразование ``l``.
     Принимает массив длиной 8 байтов (64 бита).
     Ожидает по нулевому индексу младший байт из всей последовательности (с наименьшими индексами).
-    e.g. data[0] =7,6,5,4,3,2,1,0 data[7] = 63,62,61,60,59,58,57,56.
+    e.g. data[0] = 7,6,5,4,3,2,1,0 data[7] = 63,62,61,60,59,58,57,56.
     При касте такого массива в одно число размером 64 бита (благодаря little endian хранению данных в памяти)
     получаем последовательный порядок бит *(uint64_t *)data = 63,62,61,...,2,1,0.
     */
@@ -82,9 +81,8 @@ static void multiply_by_l_matrix(uint8_t *data) {
 
     // Проходим по всем битам
     for (int j = 0; j < 64; j++) {
-        
         if (*(uint64_t *)data & (1ULL << j)) {
-            // То соответствующая строка матрицы участвует в суммировании
+            // Cоответствующая строка матрицы участвует в суммировании
             result ^= L_MATRIX[63 - j];
         }
     }
@@ -108,7 +106,6 @@ static void stribog_L_transform(uint8_t *block) {
     #endif
 }
 
-
 static void key_gen(uint8_t *K, uint8_t i) {
     /*
     Функция генерации очередного K на основе предыдущего.
@@ -127,32 +124,29 @@ static void stribog_E_transform(uint8_t *K, const uint8_t *m, uint8_t *result) {
     Ожидает все массивы с порядком байтов от младшего к старшему (байт с нулевым индексом содержит биты с 7 по 0).
     Возвращает массив с аналогичным порядоком байтов.
     */
-    // TODO: Возможно удалить копию ключа за ненадобностью
     uint8_t state[STRIBOG_BLOCK_SIZE];
-    uint8_t key[STRIBOG_BLOCK_SIZE ];
 
     // Инициализация состояния и ключа
     memcpy(state, m, STRIBOG_BLOCK_SIZE);
-    memcpy(key, K, STRIBOG_BLOCK_SIZE);
 
     for (int round = 0; round < 12; round++) {
         #ifdef DEBUG
         printf("\n\nROUND %02d\n\n", round + 1);
         printf("K:\n");
-        print_debug(key, 64);
+        print_debug(K, 64);
         #endif
         // Применяем преобразования X, S, P, L
-        stribog_X_transform(state, key, state);
+        stribog_X_transform(state, K, state);
         stribog_S_transform(state);
         stribog_P_transform(state);
         stribog_L_transform(state);
 
         // Генерируем новый ключ для следующего раунда
-        key_gen(key, round);
+        key_gen(K, round);
     }
 
     // XOR ключа с состоянием
-    stribog_X_transform(state, key, result);
+    stribog_X_transform(state, K, result);
     #ifdef DEBUG
     printf("After E:\n");
     print_debug(result, 64);
@@ -189,13 +183,13 @@ static void stribog_g_transform(uint8_t *N, uint8_t *h, const uint8_t *m, uint8_
 // Сложение двух 512-битных чисел по модулю 2^512
 static void stribog_add_array_modulo_512(uint8_t *a, const uint8_t *b) {
     /*
-    Функция сложения (по модулю 2^512) двух 512 битных чисел, представленных массивами байт.
+    Функция сложения (по модулю 2^512) двух 512 битных чисел, представленных массивами байтов.
     Ожидает все массивы с порядком байтов от младшего к старшему (байт с нулевым индексом содержит биты с 7 по 0).
     Возвращает массив с аналогичным порядоком байтов.
     */
     uint16_t sum = 0;
     
-    // Начинаем сумму с младших байт (с меньшим индексом)
+    // Начинаем сумму с младших байтов (с меньшим индексом)
     for (int i = 0; i < STRIBOG_BLOCK_SIZE; i++) {
         sum = a[i] + b[i] + (sum >> 8);
         a[i] = sum;
@@ -221,7 +215,6 @@ static void stribog_add_number_modulo_512(uint8_t *a, uint64_t b) {
     }
 }
 
-
 void stribog_init(stribog_ctx_t *ctx, uint16_t hash_size) {
     /*
     Функция инициализации контекста хеширования. 
@@ -239,12 +232,12 @@ void stribog_init(stribog_ctx_t *ctx, uint16_t hash_size) {
     // Для Stribog-256: h = 0x010101...01 
     if (hash_size == 256) {
         memset(ctx->h, 0x01, STRIBOG_BLOCK_SIZE);
-        #ifdef DEBUG
-        printf("IV:\n");
-        print_debug(ctx->h, 64);
-        printf("\n\n");
-        #endif
     }
+    #ifdef DEBUG
+    printf("IV:\n");
+    print_debug(ctx->h, 64);
+    printf("\n\n");
+    #endif
 }
 
 void stribog_process_block(stribog_ctx_t *ctx, const uint8_t *m) {
@@ -270,15 +263,14 @@ void stribog_process_block(stribog_ctx_t *ctx, const uint8_t *m) {
 
 void stribog_update(stribog_ctx_t *ctx, const uint8_t *data, size_t len){
     /* 
-    Принимает конфигурацию хеша, массив байт, и размер массива.
+    Принимает конфигурацию хеша, массив байтов, и размер массива.
     Важно заметить, что по нулевому индексу массива должен лежать первый байт блока сообщения,
-    несмотря на то, что в ГОСТе все 64 байтовые массивы представлены в обратном порядке байт.
+    несмотря на то, что в ГОСТе все 64 байтовые массивы представлены в обратном порядке байтов.
     */
     #ifdef DEBUG
     printf("Called update with data:\n");
     print_debug((uint8_t *)data, len);
     #endif
-
 
     // Увеличиваем счетчик бит исходного сообщения на длину очередного блока в битах
     ctx->total_bits += (uint64_t)len * 8;
@@ -299,7 +291,7 @@ void stribog_update(stribog_ctx_t *ctx, const uint8_t *data, size_t len){
         ctx->buffer_size += to_copy;
         // Смещаем указатель на данные к первому байту из непрочитанных в буфер
         data += to_copy;
-        // Уменьшаем оставшийся размер порции данных на количество считанных в буфер байт
+        // Уменьшаем оставшийся размер порции данных на количество считанных в буфер байтов
         len -= to_copy;
 
         // Если буфер контекста хеширования заполнился, можно провести итерацию хеширования
@@ -318,7 +310,6 @@ void stribog_final(stribog_ctx_t *ctx, uint8_t *hash) {
     Реализует 3 этап в алгоритме из ГОСТа.
     Возвращает хеш в порядке: в нулевой ячейке массива лежит нулевой (последний в нотации ГОСТа) байт хеша.
     */
-
     // Дополнение сообщения
     // Добавляем бит '1'
     ctx->buffer[ctx->buffer_size] = 0x01;
