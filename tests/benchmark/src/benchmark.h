@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include "../../../src/hash/stribog.h"  // Наша реализация
+#include "../../../src/hash/stribog.h"
 
 // Конфигурация бенчмарка
 typedef struct {

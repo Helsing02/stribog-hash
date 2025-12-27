@@ -1,4 +1,3 @@
-#define _GNU_SOURCE  // Должно быть ПЕРВОЙ строкой для включения всех GNU/Linux функций
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,7 +18,7 @@ int bind_to_cpu(int cpu_core) {
         CPU_SET(cpu_core, &cpuset);
         
         if (pthread_setaffinity_np(pthread_self(), sizeof(cpuset), &cpuset) == 0) {
-            printf("✓ Bound to CPU core %d\n", cpu_core);
+            printf("Bound to CPU core %d\n", cpu_core);
             return 0;
         } else {
             perror("pthread_setaffinity_np");
@@ -27,28 +26,10 @@ int bind_to_cpu(int cpu_core) {
     }
 #else
     (void)cpu_core;
-    printf("⚠️  CPU binding not supported on this platform\n");
+    printf("CPU binding not supported on this platform\n");
 #endif
     return -1;
 }
-
-// // Realtime приоритет
-// int set_realtime_priority(void) {
-// #ifdef __linux__
-//     struct sched_param param = {
-//         .sched_priority = sched_get_priority_max(SCHED_FIFO)
-//     };
-    
-//     if (sched_setscheduler(0, SCHED_FIFO, &param) == 0) {
-//         printf("✓ Set realtime priority\n");
-//         return 0;
-//     } else {
-//         perror("sched_setscheduler");
-//     }
-// #endif
-//     printf("⚠️  Realtime priority not available (need root?)\n");
-//     return -1;
-// }
 
 // Точное время в наносекундах
 uint64_t get_nanoseconds(void) {
@@ -133,7 +114,7 @@ int run_benchmark(const benchmark_config_t *config) {
         uint8_t hash[64];
         stribog_final(&warmup_ctx, hash);
     }
-    printf("✓ Warmup completed\n");
+    printf("Warmup completed\n");
     
     // Подготовка размеров данных
     int num_sizes = 0;
@@ -150,7 +131,7 @@ int run_benchmark(const benchmark_config_t *config) {
     
     benchmark_result_t *results = malloc(num_sizes * sizeof(benchmark_result_t));
     if (!results) {
-        fprintf(stderr, "❌ Memory allocation failed for results\n");
+        fprintf(stderr, "Memory allocation failed for results\n");
         return -1;
     }
     
@@ -164,7 +145,7 @@ int run_benchmark(const benchmark_config_t *config) {
         
         uint8_t *test_data = malloc(size);
         if (!test_data) {
-            fprintf(stderr, "❌ Failed to allocate %zu bytes for test data\n", size);
+            fprintf(stderr, "Failed to allocate %zu bytes for test data\n", size);
             free(results);
             return -1;
         }
@@ -173,7 +154,7 @@ int run_benchmark(const benchmark_config_t *config) {
         
         double *times = malloc(config->iterations * sizeof(double));
         if (!times) {
-            fprintf(stderr, "❌ Failed to allocate times array\n");
+            fprintf(stderr, "Failed to allocate times array\n");
             free(test_data);
             free(results);
             return -1;
@@ -261,7 +242,7 @@ void print_results(const benchmark_result_t *results, int count) {
 int save_results_csv(const benchmark_result_t *results, int count, const char *filename) {
     FILE *f = fopen(filename, "w");
     if (!f) {
-        perror("❌ Failed to open results file");
+        perror("Failed to open results file");
         return -1;
     }
     
@@ -275,6 +256,6 @@ int save_results_csv(const benchmark_result_t *results, int count, const char *f
     }
     
     fclose(f);
-    printf("✓ Results saved to %s\n", filename);
+    printf("Results saved to %s\n", filename);
     return 0;
 }

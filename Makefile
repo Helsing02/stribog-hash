@@ -2,12 +2,7 @@ PROJECT_NAME = stribog
 
 # Компилятор и флаги
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -std=c11 -pedantic -I./src -mavx2 -O3
-# Флаги для отладки
-DEBUG_FLAGS = -g -DDEBUG -DDEBUG_TRANSFORM
-# Флаги для релиза
-RELEASE_FLAGS = -DNDEBUG
-
+CFLAGS = -Wall -Wextra -Werror -march=native -std=c11 -pedantic -I./src
 
 # Папки
 SRC_DIR = src
@@ -15,81 +10,56 @@ OBJ_DIR = obj
 BIN_DIR = bin
 TEST_DIR = tests
 UNIT_DIR = $(TEST_DIR)/unit
-COMP_DIR = $(TEST_DIR)/comparsion
+COMP_DIR = $(TEST_DIR)/comparison
+BENCH_DIR = $(TEST_DIR)/benchmark
 
-HASH_DIR = $(SRC_DIR)/hash
-CLI_DIR = $(SRC_DIR)/cli
-IO_DIR = $(SRC_DIR)/io
-
-# Исходные файлы (автоматически находим все .c файлы)
+# Исходные файлы
 SRCS = $(shell find $(SRC_DIR) -name '*.c')
-
-# Объектные файлы (заменяем папку src на obj и расширение .c на .o)
 OBJS = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
 
-# Юнит тесты
-UNIT_SRC = $(shell find $(UNIT_DIR) -name '*.c')
+# Тесты
+TEST_NAME = test_gost_examples
+UNIT_SRC = $(UNIT_DIR)/$(TEST_NAME).c
 UNIT_OBJ = $(OBJ_DIR)/$(TEST_NAME).o
-UNIT_TARGET = $(BIN_DIR)/stribog_test
+UNIT_TARGET = $(BIN_DIR)/$(TEST_NAME)
 
-# Имя исполняемого файла
+# Цели
 TARGET = $(BIN_DIR)/$(PROJECT_NAME)
 
-# Цель по умолчанию — сборка в режиме отладки
-all: debug
+# Правила
+all: clean $(TARGET)
 
-# Цели debug/release
-debug: CFLAGS += $(DEBUG_FLAGS)
-debug: $(TARGET)
-
-release: CFLAGS += $(RELEASE_FLAGS)
-release: clean $(TARGET)
-
-compare:
-	@$(MAKE) -C $(COMP_DIR) all
-	@echo "Running comparsion..."
-	@$(MAKE) -C $(COMP_DIR) run_compare
-
-# Сборка исполняемого файла
-$(TARGET): $(OBJS) | $(BIN_DIR)
+$(TARGET): $(OBJS)
+	@mkdir -p $(@D)
 	$(CC) $(OBJS) -o $@
 
-
-# Сборка тестового исполняемого файла
-$(UNIT_TARGET): $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) $(UNIT_OBJ) | $(BIN_DIR)
+$(UNIT_TARGET): $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) $(UNIT_OBJ)
+	@mkdir -p $(@D)
 	$(CC) $^ -o $@
 
-# Сборка объектных файлов
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
-	@mkdir -p $(dir $@) # Создаем папку для объектного файла, если ее нет
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Сборка тестового объектного файла
-$(UNIT_OBJ): $(UNIT_SRC) | $(OBJ_DIR)
-	@mkdir -p $(dir $@)
+$(OBJ_DIR)/$(TEST_NAME).o: $(UNIT_SRC)
+	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -I$(SRC_DIR) -c $< -o $@
 
-# Создание папок для объектных файлов и бинарника
-$(OBJ_DIR):
-	mkdir -p $(OBJ_DIR)
+compare:
+	@echo "=== Сборка и запуск сравнения реализаций ==="
+	@$(MAKE) -C $(COMP_DIR) clean all run_compare
 
-$(BIN_DIR):
-	mkdir -p $(BIN_DIR)
+benchmark:
+	@echo "=== Сборка и запуск тестов производительности ==="
+	@$(MAKE) -C $(BENCH_DIR) clean all full
 
-# Очистка
-compare-clean:
-	@$(MAKE) -C $(COMP_DIR) clean
-
-clean: compare-clean
+clean:
+	@$(MAKE) -C $(COMP_DIR) clean 2>/dev/null || true
+	@$(MAKE) -C $(BENCH_DIR) clean 2>/dev/null || true
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
 
-# Пересборка
-rebuild: clean all
-
-# Цель для запуска тестов
-unit: $(UNIT_TARGET)
-	@echo "Running Stribog unit tests..."
+test: $(UNIT_TARGET)
+	@echo "=== Запуск модульных тестов ==="
 	@./$(UNIT_TARGET)
 
-# Указываем, что эти цели не являются реальными файлами
-.PHONY: all clean rebuild unit compare compare-clean
+.PHONY: all debug release clean test compare benchmark

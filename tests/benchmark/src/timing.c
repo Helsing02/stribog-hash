@@ -6,7 +6,7 @@
 #include <x86intrin.h>
 #endif
 
-// Наносекунды с помощью clock_gettime (переносимо)
+// Наносекунды с помощью clock_gettime
 uint64_t nanoseconds(void) {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC_RAW, &ts);

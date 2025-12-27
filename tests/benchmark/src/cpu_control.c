@@ -34,7 +34,7 @@ int set_cpu_affinity(int cpu_core) {
         return -1;
     }
     
-    printf("✓ Bound to CPU core %d\n", cpu_core);
+    printf("Bound to CPU core %d\n", cpu_core);
     return 0;
 }
 
@@ -48,7 +48,7 @@ int set_realtime_priority(void) {
         return -1;
     }
     
-    printf("✓ Set realtime priority (SCHED_FIFO)\n");
+    printf("Set realtime priority (SCHED_FIFO)\n");
     return 0;
 }
 
@@ -65,7 +65,7 @@ int disable_turbo_boost(void) {
     
     write(fd, "1", 1);
     close(fd);
-    printf("✓ Disabled turbo boost\n");
+    printf("Disabled turbo boost\n");
     return 0;
 }
 
@@ -80,7 +80,7 @@ int enable_turbo_boost(void) {
     
     write(fd, "0", 1);
     close(fd);
-    printf("✓ Enabled turbo boost\n");
+    printf("Enabled turbo boost\n");
     return 0;
 }
 #else
