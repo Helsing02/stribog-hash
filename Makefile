@@ -2,9 +2,7 @@ PROJECT_NAME = stribog
 
 # Компилятор и флаги
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -std=c11 -pedantic -I./src
-DEBUG_FLAGS = -g -O0 -DDEBUG
-RELEASE_FLAGS = -O2 -DNDEBUG
+CFLAGS = -Wall -Wextra -Werror -O2 -std=c11 -pedantic -I./src
 
 # Папки
 SRC_DIR = src
@@ -29,13 +27,7 @@ UNIT_TARGET = $(BIN_DIR)/$(TEST_NAME)
 TARGET = $(BIN_DIR)/$(PROJECT_NAME)
 
 # Правила
-all: debug
-
-debug: CFLAGS += $(DEBUG_FLAGS)
-debug: $(TARGET) $(UNIT_TARGET)
-
-release: CFLAGS += $(RELEASE_FLAGS)
-release: clean $(TARGET)
+all: clean $(TARGET)
 
 $(TARGET): $(OBJS)
 	@mkdir -p $(@D)

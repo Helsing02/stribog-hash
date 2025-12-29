@@ -2,16 +2,6 @@
 #include "stribog_const.h"
 #include <string.h> // Для memcpy, memset
 
-#ifdef DEBUG
-#include <stdio.h>
-static void print_debug(uint8_t *state, size_t len) {
-    for (int i = len - 1; i >= 0; i--) {
-        printf("%02x", state[i]);
-    }
-    printf("\n");
-}
-#endif
-
 // Преобразование X (побитовая сумма по модулю 2 векторов размерностью 512)
 static void stribog_X_transform(const uint8_t *a, const uint8_t *b, uint8_t *result) {
     /*
@@ -22,10 +12,6 @@ static void stribog_X_transform(const uint8_t *a, const uint8_t *b, uint8_t *res
     for (int i = 0; i < STRIBOG_BLOCK_SIZE / 8; i++) {
         ((uint64_t *)result)[i] = ((uint64_t *)a)[i] ^ ((uint64_t *)b)[i];
     }
-    #ifdef DEBUG
-    printf("After X:\n");
-    print_debug(result, 64);
-    #endif
 }
 
 // Преобразование S (подстановка байтов по S-блоку)
@@ -38,10 +24,6 @@ static void stribog_S_transform(uint8_t *block) {
     for (int i = 0; i < STRIBOG_BLOCK_SIZE; i++) {
         block[i] = S_BOX[block[i]];
     }
-    #ifdef DEBUG
-    printf("After S:\n");
-    print_debug(block, 64);
-    #endif
 }
 
 // Преобразование P (перестановка байтов)
@@ -61,10 +43,6 @@ static void stribog_P_transform(uint8_t *block) {
     for (int i = 0; i < STRIBOG_BLOCK_SIZE; i++) {
         block[i] = temp[(i * 8 + i / 8) % STRIBOG_BLOCK_SIZE];
     }
-    #ifdef DEBUG
-    printf("After P:\n");
-    print_debug(block, 64);
-    #endif
 }
 
 // Преобразвание l (умножение на матрицу)
@@ -100,10 +78,6 @@ static void stribog_L_transform(uint8_t *block) {
     for (int i = 0; i < 8; i++) {
         multiply_by_l_matrix(&block[i * 8]);
     }
-    #ifdef DEBUG
-    printf("After L:\n");
-    print_debug(block, 64);
-    #endif
 }
 
 static void key_gen(uint8_t *K, uint8_t i) {
@@ -130,11 +104,6 @@ static void stribog_E_transform(uint8_t *K, const uint8_t *m, uint8_t *result) {
     memcpy(state, m, STRIBOG_BLOCK_SIZE);
 
     for (int round = 0; round < 12; round++) {
-        #ifdef DEBUG
-        printf("\n\nROUND %02d\n\n", round + 1);
-        printf("K:\n");
-        print_debug(K, 64);
-        #endif
         // Применяем преобразования X, S, P, L
         stribog_X_transform(state, K, state);
         stribog_S_transform(state);
@@ -144,13 +113,8 @@ static void stribog_E_transform(uint8_t *K, const uint8_t *m, uint8_t *result) {
         // Генерируем новый ключ для следующего раунда
         key_gen(K, round);
     }
-
     // XOR ключа с состоянием
     stribog_X_transform(state, K, result);
-    #ifdef DEBUG
-    printf("After E:\n");
-    print_debug(result, 64);
-    #endif
 }
 
 // Функция сжатия g
@@ -173,11 +137,6 @@ static void stribog_g_transform(uint8_t *N, uint8_t *h, const uint8_t *m, uint8_
 
     stribog_X_transform(e_res, h, e_res);
     stribog_X_transform(e_res, m, result);
-
-    #ifdef DEBUG
-    printf("After g:\n");
-    print_debug(result, 64);
-    #endif
 }
 
 // Сложение двух 512-битных чисел по модулю 2^512
@@ -233,11 +192,6 @@ void stribog_init(stribog_ctx_t *ctx, uint16_t hash_size) {
     if (hash_size == 256) {
         memset(ctx->h, 0x01, STRIBOG_BLOCK_SIZE);
     }
-    #ifdef DEBUG
-    printf("IV:\n");
-    print_debug(ctx->h, 64);
-    printf("\n\n");
-    #endif
 }
 
 void stribog_process_block(stribog_ctx_t *ctx, const uint8_t *m) {
@@ -249,16 +203,8 @@ void stribog_process_block(stribog_ctx_t *ctx, const uint8_t *m) {
     stribog_g_transform(ctx->N, ctx->h, m, ctx->h);
     // Прибавляем 512 к N по модулю 2^512
     stribog_add_number_modulo_512(ctx->N, (uint64_t)512);
-    #ifdef DEBUG
-    printf("New N:\n");
-    print_debug((uint8_t *)ctx->N, 64);
-    #endif
     // Прибавляем числовое представление m к Сигме
     stribog_add_array_modulo_512(ctx->Sigma, m);
-    #ifdef DEBUG
-    printf("New Sigma:\n");
-    print_debug((uint8_t *)ctx->Sigma, 64);
-    #endif
 }
 
 void stribog_update(stribog_ctx_t *ctx, const uint8_t *data, size_t len){
@@ -267,11 +213,6 @@ void stribog_update(stribog_ctx_t *ctx, const uint8_t *data, size_t len){
     Важно заметить, что по нулевому индексу массива должен лежать первый байт блока сообщения,
     несмотря на то, что в ГОСТе все 64 байтовые массивы представлены в обратном порядке байтов.
     */
-    #ifdef DEBUG
-    printf("Called update with data:\n");
-    print_debug((uint8_t *)data, len);
-    #endif
-
     // Увеличиваем счетчик бит исходного сообщения на длину очередного блока в битах
     ctx->total_bits += (uint64_t)len * 8;
 
@@ -317,25 +258,13 @@ void stribog_final(stribog_ctx_t *ctx, uint8_t *hash) {
     
     // Заполняем оставшуюся часть буфера нулями
     memset(ctx->buffer + ctx->buffer_size, 0, STRIBOG_BLOCK_SIZE - ctx->buffer_size);
-    #ifdef DEBUG
-    printf("\nCalled final with buffer:\n");
-    print_debug((uint8_t *)ctx->buffer, 64);
-    #endif
 
     // Обрабатываем последнюю часть сообщения
     stribog_g_transform(ctx->N, ctx->h, ctx->buffer, ctx->h);
     // Прибавляем к N длину обработанного сообщения в битах
     stribog_add_number_modulo_512(ctx->N, (ctx->buffer_size - 1) * 8);
-    #ifdef DEBUG
-    printf("New N:\n");
-    print_debug((uint8_t *)ctx->N, 64);
-    #endif
     // Прибавляем к Сигме последний блок сообщения, преобразованный в число
     stribog_add_array_modulo_512(ctx->Sigma, ctx->buffer);
-    #ifdef DEBUG
-    printf("New Sigma:\n");
-    print_debug((uint8_t *)ctx->Sigma, 64);
-    #endif
 
     // Вызываем g с нулевым индексом и параметрами g0(h, N)
     uint8_t zero[STRIBOG_BLOCK_SIZE] = {0};
@@ -346,9 +275,7 @@ void stribog_final(stribog_ctx_t *ctx, uint8_t *hash) {
     // Для Stribog-256 берем только первые 256 бит (4 элемента из 8)
     if (ctx->hash_size == 256) {
         // Конвертируем результат в байты (little-endian)
-        for (int i = 0; i < 4; i++) {
-            ((uint64_t *)hash)[i] = ((uint64_t *)hash)[i + 4];
-        }
+        memcpy(hash, &hash[32], 32);
         memset(&hash[32], 0, 32);
     }
 }
