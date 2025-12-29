@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c11 -O2 -I../src -I. -D_GNU_SOURCE
+CFLAGS = -march=native -std=c11 -O2 -I../src -I. -D_GNU_SOURCE
 LDFLAGS = -lm -lrt -pthread
 
 SRC_DIR = src

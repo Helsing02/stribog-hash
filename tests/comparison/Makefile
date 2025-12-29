@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c11 -fPIC -I../src -I.
+CFLAGS = -march=native -std=c11 -fPIC -I../src -I.
 LDFLAGS = -lm -ldl
 
 # Директории
@@ -44,19 +44,8 @@ $(LIB_DIR)/libother_impl_3.so: $(OTHER_IMPL_3_SRCS) | $(LIB_DIR)
 $(BIN_DIR)/compare: $(SRC_DIR)/compare.c | $(BIN_DIR)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-# Главный компаратор
-$(BIN_DIR)/compare: $(COMPARE_OBJS) | $(LIB_DIR) $(BIN_DIR)
-	$(CC) -o $@ $(COMPARE_OBJS) $(LDFLAGS)
-
-$(BIN_DIR)/random_generator: $(GEN_OBJS) | $(BIN_DIR)
-	$(CC) -o $@ $(GEN_OBJS) $(LDFLAGS)
-
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
-
-clean:
-	rm -f $(TARGETS)
-	rm -rf $(LIB_DIR) $(OBJ_DIR) $(BIN_DIR)
+$(BIN_DIR)/random_generator: $(SRC_DIR)/random_generator.c | $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 run_compare: all
 	@echo "=== Запуск сравнения реализаций ==="

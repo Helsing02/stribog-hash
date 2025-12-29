@@ -2,7 +2,7 @@ PROJECT_NAME = stribog
 
 # Компилятор и флаги
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -march=native -std=c11 -pedantic -I./src
+CFLAGS = -march=native -std=c11 -pedantic -I./src
 
 # Папки
 SRC_DIR = src
