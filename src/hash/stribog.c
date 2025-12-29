@@ -171,10 +171,7 @@ void stribog_final(stribog_ctx_t *ctx, uint8_t *hash) {
 
     // Для Stribog-256 берем только первые 256 бит (4 элемента из 8)
     if (ctx->hash_size == 256) {
-        // Конвертируем результат в байты (little-endian)
-        for (int i = 0; i < 4; i++) {
-            ((uint64_t *)hash)[i] = ((uint64_t *)hash)[i + 4];
-        }
+        memcpy(hash, &hash[32], 32);
         memset(&hash[32], 0, 32);
     }
 }
